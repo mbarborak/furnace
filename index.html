@@ -1,0 +1,113 @@
+<html>
+<head>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="bower_components/d3-timeseries/src/d3_timeseries.css" media="screen">
+    <script src="bower_components/d3/d3.min.js"></script>
+    <script src="bower_components/d3-timeseries/src/d3_timeseries.js"></script>
+    <!--  For better time, change above js: return '<h4>'+date.toLocaleString()+'</h4>'...  -->
+</head>
+<body>
+	<div>
+	    <button id="update">Update</button>
+	</div>
+	<div id="chart"></div>
+    <script>
+    function getData(theUrl)
+    {
+    	var resolve;
+    	var promise = new Promise(r => resolve = r);
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.onreadystatechange = function() { 
+            if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+                resolve(JSON.parse(xmlHttp.responseText));
+        }
+        xmlHttp.open("GET", theUrl, true); 
+        xmlHttp.send(null);
+        return promise;
+    }    
+    
+    var colors = null;
+    var allData = [];
+    
+    function update() {
+    	var since;
+    	if (allData.length > 0) {
+    		since = allData[allData.length - 1][0];
+    	} else {
+    		since = Date.now() - 1000 * 60 * 60 * 24;
+    	}
+	    getData("http://" + document.location.hostname + ":3000/?since=" + since)
+	    .then(resp => {
+    		document.getElementById("chart").innerHTML = "";
+    		
+    		colors = resp.colors;
+    		allData = allData.concat(resp.data);
+    		
+            var series = {};
+	    	allData.forEach(e => {
+                var date;
+	    		e.forEach((v, i) => {
+                    if (i == 0) {
+                    	date = new Date(v);
+                    } else {
+                    	if (series[i] == null) series[i] = [];
+                    	let finalV = v;
+                    	if (i == 6) finalV = v > 100 ? 30 : 0;
+                    	if (i == 7) finalV = v > 100 ? 35 : 0;
+                    	if (i == 8) finalV = v > 100 ? 40 : 0;
+	                    series[i].push({date: date, temp: finalV});
+		    		}
+	    		});
+	    	});
+	    	
+		    var chart = d3.timeseries();
+		    
+		    for (var index in series) {
+		    	var color = colors[index - 1];
+		    	if (color.indexOf("adc") >= 0) {
+		    		if (color == "adc0") {
+		    			color = "black";
+		    		} else if (color == "adc1") {
+		    			color = "silver";
+		    		} else if (color == "adc2") {
+		    			color = "gold";
+		    		} else {
+		    			continue;
+		    		}
+		    	}
+		    	var label = color;
+                if (color == "green") label += " incoming air";
+                if (color == "yellow") label += " outgoing air";
+                if (color == "blue") label += " right sensor";
+                if (color == "orange") label += " left sensor";
+                if (color == "purple") label += " basement";
+                if (color == "black") label += " LPS";
+                if (color == "silver") label += " HPS";
+                if (color == "gold") label += " inducer fan";
+		    	chart.addSerie(series[index], 
+	    			{
+						x: 'date', 
+						y: 'temp'
+	    	        }, 
+	    			{
+	    				interpolate: 'monotone', 
+	    				width: 1,
+	    				label: label,
+	    				color: color == "yellow" ? "gold" : color
+	    			});
+		    }
+		    
+		    chart
+		        .width(900)
+		        .margin.left(70);
+		    
+		    chart('#chart');
+	    });
+    }
+    
+    document.getElementById("update").addEventListener("click", update);
+    	
+    update();
+    </script>
+</body>
+</html>

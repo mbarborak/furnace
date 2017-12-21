@@ -1,0 +1,7 @@
+{
+    "name": "furnace-app",
+    "version": "1.0.0",
+    "dependencies": {
+        "d3-timeseries": "https://github.com/mcaule/d3-timeseries.git"
+    }
+}
