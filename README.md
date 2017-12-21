@@ -38,5 +38,8 @@ To measure the presence of 24V, I built a small circuit described in `circuit-20
 
 # Arduino Furnace Control
 
-This sketch drives the furnace control I built to prevent the furnace limit fault. It works with a relay and two thermistors. When the Arduino reads a temperature difference greater than 69 degrees, it turns on the relay. By putting the relay between the thermostat's white (call for heat) output and the input on the furnace control panel, I can turn off the call for heat before a fault occurs.
+The sketch `furnace_ctl/furnace_ctl.ino` drives the furnace control I built to prevent the furnace limit fault. It works with a relay and two thermistors. When the Arduino reads a temperature difference greater than 69 degrees, it turns on the relay. By putting the relay between the thermostat's white (call for heat) output and the input on the furnace control panel, I can turn off the call for heat before a fault occurs.
+
+I use the Arduino IDE to upload the sketch to an Arduino Uno.
+
 
